@@ -1,24 +1,51 @@
-import express from "express";
-
-import cors from "cors";
-import "dotenv/config";
-import morgan from "morgan";
-
+import bookRouter from "./src/router/bookRouter.js";
 import { connectMongo } from "./src/db/config/mongoConfig.js";
+import cors from "cors";
+import express from "express";
+import morgan from "morgan";
 import userRouter from "./src/router/userRouter.js";
 
-const PORTNUM = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000;
 
 const app = express();
-app.use(cors());
-app.use(morgan("dev"));
 app.use(express.json());
-
-app.use("/library/user", userRouter);
+app.use(cors());
 
 connectMongo();
-app.listen(PORTNUM, (error) => {
+
+if (process.env.NODE_ENV !== "production") {
+  //can be left in prod as well to track user requests
+  app.use(morgan("dev"));
+}
+
+//routers
+app.use("/library/users", userRouter);
+app.use("/library/books", bookRouter);
+
+//server status
+app.get("/", (req, res, next) => {
+  res.json("Server running Smoothly");
+});
+
+//if path is not recognised by server
+app.use((req, res, next) => {
+  const error = new Error("404 Not Found");
+  error.status = 404;
+  next(error);
+});
+
+//global error handler
+app.use((error, req, res, next) => {
+  console.log(error.status);
+
+  res.status(error.status || 500).json({
+    status: "error",
+    message: error.message,
+  });
+});
+
+app.listen(PORT, (error) => {
   error
     ? console.log(error)
-    : console.log(`Server started at http://localhost/${PORTNUM}`);
+    : console.log(`Server started at http://localhost/${PORT}`);
 });

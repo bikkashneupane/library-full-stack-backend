@@ -1,16 +1,14 @@
-import { compareSync } from "bcrypt";
+import { addNewUser } from "../db/model/user/UserModel.js";
 import express from "express";
 import { hashPassword } from "../bcrypt/bcrypt.js";
-import { addNewUser, getUserByEmail } from "../db/model/user/UserModel.js";
+import { newUserValidation } from "../middlewares/joiValidation.js";
 
-const userRouter = express.Router();
+const router = express.Router();
 
-userRouter.post("/signup", async (req, res) => {
+router.post("/signup", newUserValidation, async (req, res, next) => {
   try {
-    const { password, ...rest } = req.body;
-    const encrptedPass = hashPassword(password);
-
-    const user = await addNewUser({ ...rest, password: encrptedPass });
+    req.body.password = hashPassword(req.body.password);
+    const user = await addNewUser(req.body);
     user?._id
       ? res.json({
           status: "success",
@@ -18,42 +16,23 @@ userRouter.post("/signup", async (req, res) => {
         })
       : res.json({
           status: "error",
-          message: "Request Failed, try again",
+          message: "Could not resolve request, try again",
         });
   } catch (error) {
-    console.log(error);
-    res.json({
-      status: "error",
-      message: error.messge,
-    });
-  }
-});
-
-userRouter.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await getUserByEmail(email);
-    console.log(user);
-
-    if (!user?._id && compareSync(password, user.password) === "false") {
-      res.json({
-        status: "error",
-        message: "Request Failed, try again",
-      });
+    if (error.message.includes("E11000 duplicate key")) {
+      error.message =
+        "Another user alreay have this email, change your email and try again";
+      error.status = 200;
     }
-
-    user.password = undefined;
-    res.json({
-      status: "success",
-      message: "New User Added",
-      user,
-    });
-  } catch (error) {
-    res.json({
-      status: "error",
-      message: error.messge,
-    });
+    next(error);
   }
 });
 
-export default userRouter;
+router.post("/login", (req, res, next) => {
+  try {
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;
