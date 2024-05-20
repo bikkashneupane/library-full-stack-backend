@@ -1,10 +1,13 @@
-import { addNewUser } from "../db/model/user/UserModel.js";
+import { addNewUser, getUserByEmail } from "../db/model/user/UserModel.js";
+import { comparePassword, hashPassword } from "../util/bcrypt.js";
+import { signAccessJWT, signRefreshJWT } from "../util/jwt.js";
+
 import express from "express";
-import { hashPassword } from "../bcrypt/bcrypt.js";
 import { newUserValidation } from "../middlewares/joiValidation.js";
 
 const router = express.Router();
 
+//create user
 router.post("/signup", newUserValidation, async (req, res, next) => {
   try {
     req.body.password = hashPassword(req.body.password);
@@ -28,8 +31,42 @@ router.post("/signup", newUserValidation, async (req, res, next) => {
   }
 });
 
-router.post("/login", (req, res, next) => {
+//login user
+router.post("/login", async (req, res, next) => {
   try {
+    const { email, password } = req.body;
+    console.log(email + "destructure");
+
+    if (!email.includes("@") || !password) {
+      throw new Error("Invalid login details");
+    }
+
+    //find user by email
+    const user = await getUserByEmail(email);
+    console.log(user + "user found");
+
+    if (user?._id) {
+      //verify password
+      const isPassMatched = comparePassword(password, user.password);
+
+      return isPassMatched
+        ? res.json({
+            status: "success",
+            message: "User Authenticated",
+            tokens: {
+              accessJWT: signAccessJWT({ email }),
+              refreshJWT: signRefreshJWT({ email }),
+            },
+          })
+        : res.json({
+            status: "error",
+            message: "Invalid Login Detail",
+          });
+    }
+    res.json({
+      status: "error",
+      message: "Email not found",
+    });
   } catch (error) {
     next(error);
   }

@@ -1,3 +1,4 @@
+import authRouter from "./src/AuthRouter/authRouter.js";
 import bookRouter from "./src/router/bookRouter.js";
 import { connectMongo } from "./src/db/config/mongoConfig.js";
 import cors from "cors";
@@ -20,6 +21,9 @@ if (process.env.NODE_ENV !== "production") {
 
 //routers
 app.use("/library/users", userRouter);
+
+app.use("/library/authUser", authRouter);
+
 app.use("/library/books", bookRouter);
 
 //server status
