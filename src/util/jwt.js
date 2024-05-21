@@ -2,7 +2,7 @@ import JWT from "jsonwebtoken";
 import { insertToken } from "../db/model/session/SessionSchema.js";
 import { updateUser } from "../db/model/user/UserModel.js";
 
-// create access jwt
+// 1. create access jwt
 export const signAccessJWT = (payload) => {
   //   return JWT.sign(payload, process.env.ACCESSS_JWT_SECRET);
   const token = JWT.sign(payload, process.env.ACCESSS_JWT_SECRET, {
@@ -13,9 +13,19 @@ export const signAccessJWT = (payload) => {
   return token;
 };
 
-// verify access jwt
+// 2. verify access jwt
+export const verifyAccessJWT = (token) => {
+  try {
+    return JWT.verify(token, process.env.ACCESSS_JWT_SECRET); //returns object
+  } catch (error) {
+    console.log(error);
+    return "Invalid Token";
+  }
+};
 
-// create refresh jwt
+//================================================================================
+
+// 1.  create refresh jwt
 export const signRefreshJWT = (payload) => {
   //   return JWT.sign(payload, process.env.REFRESH);
   const refreshJWT = JWT.sign(payload, process.env.REFRESH_JWT_SECRET, {
@@ -25,4 +35,4 @@ export const signRefreshJWT = (payload) => {
   return refreshJWT;
 };
 
-// verify refresh jwt
+// 2. verify refresh jwt

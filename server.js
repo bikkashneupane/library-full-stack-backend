@@ -19,18 +19,17 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
-//routers
+//Define main route handlers
 app.use("/library/users", userRouter);
-
 app.use("/library/authUser", authRouter);
-
 app.use("/library/books", bookRouter);
 
-//server status
+//server status, should be before the 404 handler
 app.get("/", (req, res, next) => {
   res.json("Server running Smoothly");
 });
 
+//404 Not Found Handler
 //if path is not recognised by server
 app.use((req, res, next) => {
   const error = new Error("404 Not Found");
@@ -38,7 +37,7 @@ app.use((req, res, next) => {
   next(error);
 });
 
-//global error handler
+//Global error handler, must be last
 app.use((error, req, res, next) => {
   console.log(error.status);
 

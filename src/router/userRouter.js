@@ -2,12 +2,14 @@ import { addNewUser, getUserByEmail } from "../db/model/user/UserModel.js";
 import { comparePassword, hashPassword } from "../util/bcrypt.js";
 import { signAccessJWT, signRefreshJWT } from "../util/jwt.js";
 
+import { auth } from "../middlewares/auth.js";
 import express from "express";
 import { newUserValidation } from "../middlewares/joiValidation.js";
 
 const router = express.Router();
 
-//create user
+// ========================= public controllers=====================================
+//create new user
 router.post("/signup", newUserValidation, async (req, res, next) => {
   try {
     req.body.password = hashPassword(req.body.password);
@@ -43,7 +45,6 @@ router.post("/login", async (req, res, next) => {
 
     //find user by email
     const user = await getUserByEmail(email);
-    console.log(user + "user found");
 
     if (user?._id) {
       //verify password
@@ -66,6 +67,20 @@ router.post("/login", async (req, res, next) => {
     res.json({
       status: "error",
       message: "Email not found",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ========================private controllers======================================
+router.get("/", auth, async (req, res, next) => {
+  try {
+    req.userInfo.refreshJWT = undefined;
+    res.json({
+      status: "success",
+      message: "User authenticated",
+      user: req.userInfo,
     });
   } catch (error) {
     next(error);

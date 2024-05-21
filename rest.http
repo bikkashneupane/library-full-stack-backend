@@ -28,3 +28,7 @@ GET {{root-URL}}
 POST {{user-API}}/login
 ###
 POST {{user-API}}/signup
+
+### 
+GET {{user-API}}
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFAZ21haWwuY29tIiwiaWF0IjoxNzE2MjU3NDIxLCJleHAiOjE3MTYyNTgzMjF9.hb2xevCo8LWeWMg-o5g3-CMc19cpSPStgt4J5o24p7k
