@@ -6,7 +6,7 @@ import express from "express";
 import morgan from "morgan";
 import userRouter from "./src/router/userRouter.js";
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8001;
 
 const app = express();
 app.use(express.json());

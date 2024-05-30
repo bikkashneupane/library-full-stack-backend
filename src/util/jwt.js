@@ -6,10 +6,10 @@ import { updateUser } from "../db/model/user/UserModel.js";
 export const signAccessJWT = (payload) => {
   //   return JWT.sign(payload, process.env.ACCESSS_JWT_SECRET);
   const token = JWT.sign(payload, process.env.ACCESSS_JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "1m",
   });
-  insertToken({ token });
 
+  insertToken({ token });
   return token;
 };
 
@@ -18,21 +18,29 @@ export const verifyAccessJWT = (token) => {
   try {
     return JWT.verify(token, process.env.ACCESSS_JWT_SECRET); //returns object
   } catch (error) {
-    console.log(error);
-    return "Invalid Token";
+    console.log(error, " verigydfghjkl", error.message);
+    return error.message === "jwt expired" ? "jwt expired" : "Invalid Token";
   }
 };
 
 //================================================================================
 
 // 1.  create refresh jwt
-export const signRefreshJWT = (payload) => {
-  //   return JWT.sign(payload, process.env.REFRESH);
-  const refreshJWT = JWT.sign(payload, process.env.REFRESH_JWT_SECRET, {
+// email is destructured from payload
+export const signRefreshJWT = ({ email }) => {
+  // return JWT.sign(payload, process.env.REFRESH);
+  const refreshJWT = JWT.sign({ email }, process.env.REFRESH_JWT_SECRET, {
     expiresIn: "30d",
   });
-  updateUser(payload, { refreshJWT });
+  updateUser({ email }, { refreshJWT });
   return refreshJWT;
 };
 
 // 2. verify refresh jwt
+export const verifyRefreshJWT = (token) => {
+  try {
+    return JWT.verify(token, process.env.REFRESH_JWT_SECRET);
+  } catch (error) {
+    return "Invalid Token";
+  }
+};

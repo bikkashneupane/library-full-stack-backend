@@ -1,8 +1,8 @@
 import { addNewUser, getUserByEmail } from "../db/model/user/UserModel.js";
+import { auth, jwtAuth } from "../middlewares/auth.js";
 import { comparePassword, hashPassword } from "../util/bcrypt.js";
 import { signAccessJWT, signRefreshJWT } from "../util/jwt.js";
 
-import { auth } from "../middlewares/auth.js";
 import express from "express";
 import { newUserValidation } from "../middlewares/joiValidation.js";
 
@@ -14,6 +14,7 @@ router.post("/signup", newUserValidation, async (req, res, next) => {
   try {
     req.body.password = hashPassword(req.body.password);
     const user = await addNewUser(req.body);
+
     user?._id
       ? res.json({
           status: "success",
@@ -33,11 +34,11 @@ router.post("/signup", newUserValidation, async (req, res, next) => {
   }
 });
 
+// ========================public controllers======================================
 //login user
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    console.log(email + "destructure");
 
     if (!email.includes("@") || !password) {
       throw new Error("Invalid login details");
@@ -50,23 +51,20 @@ router.post("/login", async (req, res, next) => {
       //verify password
       const isPassMatched = comparePassword(password, user.password);
 
-      return isPassMatched
-        ? res.json({
-            status: "success",
-            message: "User Authenticated",
-            tokens: {
-              accessJWT: signAccessJWT({ email }),
-              refreshJWT: signRefreshJWT({ email }),
-            },
-          })
-        : res.json({
-            status: "error",
-            message: "Invalid Login Detail",
-          });
+      if (isPassMatched) {
+        return res.json({
+          status: "success",
+          message: "User Authenticated",
+          tokens: {
+            accessJWT: signAccessJWT({ email }),
+            refreshJWT: signRefreshJWT({ email }),
+          },
+        });
+      }
     }
     res.json({
       status: "error",
-      message: "Email not found",
+      message: "Invalid Login Details",
     });
   } catch (error) {
     next(error);
@@ -74,14 +72,27 @@ router.post("/login", async (req, res, next) => {
 });
 
 // ========================private controllers======================================
-router.get("/", auth, async (req, res, next) => {
+// return user profile
+router.get("/", auth, (req, res, next) => {
   try {
     req.userInfo.refreshJWT = undefined;
+    // req.userInfo.__v = undefined;
     res.json({
       status: "success",
-      message: "User authenticated",
+      message: "User Profile",
       user: req.userInfo,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// return new accessJWT
+router.get("/renew-accessjwt", jwtAuth, (req, res, next) => {
+  try {
+    const { email } = req.userInfo;
+    const accessJWT = signAccessJWT({ email });
+    res.json({ accessJWT });
   } catch (error) {
     next(error);
   }

@@ -7,7 +7,7 @@ export const addNewUser = (userObj) => {
 
 //get user by email
 export const getUserByEmail = (email) => {
-  return UserSchema.findOne({ email });
+  return UserSchema.findOne(email);
 };
 
 //update user
