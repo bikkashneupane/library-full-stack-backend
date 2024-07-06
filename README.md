@@ -9,6 +9,6 @@
 5. Get user by email
 6. If user exist, they are now authorised
 
-# 401- Unauthenticated
+# 401- Unauthorised
 
-# 403- Unauthorised
+# 403- Unauthenticated
